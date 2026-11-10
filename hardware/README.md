@@ -106,9 +106,9 @@ These are known gaps, most important first.
 7. **5 V supply behaviour is calculated, not measured**: soft-start timing
    (R10, R11, C10), droop during heavy black printing, and behaviour on weak
    USB ports all need bench testing.
-8. **Mechanical layout is a placeholder.** Board size, connector, button and
-   LED positions were chosen for routing, not for an enclosure, which does not
-   exist yet.
+8. **Mechanical layout came first, enclosure second.** Board size and
+   connector, button and LED positions were chosen for routing. The
+   [enclosure](enclosure/README.md) was then drawn around them.
 9. **Module lifecycle.** Confirm with the supplier which ESP32-C3-WROOM-02
    variant is current before buying.
 10. **Silkscreen** labels overlap in places and need tidying.

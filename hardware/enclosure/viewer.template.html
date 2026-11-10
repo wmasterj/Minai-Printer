@@ -1,0 +1,321 @@
+<title>Minai Printer Enclosure</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a workbench. The 3D stage takes the page; a narrow spec sheet sits beside it (below it on a phone). */
+:root {
+  --bg: #e9ecef;            /* cool bench grey */
+  --stage: #f6f7f8;
+  --panel: #ffffff;
+  --ink: #1a1f25;
+  --muted: #5d6772;
+  --line: #d3d9df;
+  --accent: #e2591c;        /* the printer's one orange button */
+  --accent-ink: #ffffff;
+  --edge: #3b434c;
+  --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14181c; --stage: #1b2026; --panel: #20262d; --ink: #e8ecef; --muted: #98a3ad;
+    --line: #333c45; --accent: #ff7a3d; --accent-ink: #1a1208; --edge: #0c0f12; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14181c; --stage: #1b2026; --panel: #20262d; --ink: #e8ecef; --muted: #98a3ad;
+  --line: #333c45; --accent: #ff7a3d; --accent-ink: #1a1208; --edge: #0c0f12; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-block: 20px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 16px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
+h1 { font-family: var(--display); font-weight: 600; font-size: 1.55rem; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.dims { font-family: var(--mono); font-size: 0.9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.dims b { color: var(--ink); font-weight: 500; }
+.bench { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; align-items: start; }
+.stage {
+  position: relative; background: var(--stage); border: 1px solid var(--line); border-radius: 10px;
+  overflow: hidden; height: min(72vh, 680px); min-height: 380px; touch-action: none;
+}
+.stage canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+.stage canvas:active { cursor: grabbing; }
+.hint { position: absolute; left: 12px; bottom: 10px; font-size: 0.78rem; color: var(--muted); pointer-events: none; }
+.tag {
+  position: absolute; left: 12px; top: 12px; font-family: var(--mono); font-size: 0.8rem;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; min-height: 28px;
+}
+.views { position: absolute; right: 10px; top: 10px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; max-width: 70%; }
+button {
+  font: 500 0.84rem var(--body); color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 6px; padding: 6px 11px; cursor: pointer;
+}
+button:hover { border-color: var(--muted); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.side { display: grid; gap: 16px; min-width: 0; }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+h2 { font-family: var(--display); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); margin: 0 0 10px; }
+.ctl { display: grid; gap: 12px; }
+.ctl label { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: 0.88rem; }
+.ctl output { font-family: var(--mono); font-size: 0.82rem; color: var(--muted); }
+.ctl input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); margin: 0; }
+.ctl label.check { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; }
+.check input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; }
+ul.parts { list-style: none; margin: 0; padding: 0; display: grid; }
+ul.parts li {
+  display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 2px 9px; align-items: center;
+  padding: 7px 6px; border-top: 1px solid var(--line); cursor: pointer; border-radius: 4px;
+}
+ul.parts li:first-child { border-top: 0; }
+ul.parts li.on { background: var(--stage); }
+.sw { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line); }
+.pn { font-weight: 500; font-size: 0.9rem; }
+.pd { font-family: var(--mono); font-size: 0.76rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pk { grid-column: 2 / -1; font-size: 0.76rem; color: var(--muted); }
+.notes { font-size: 0.86rem; color: var(--muted); margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.notes b { color: var(--ink); font-weight: 600; }
+@media (max-width: 860px) {
+  .bench { grid-template-columns: minmax(0, 1fr); }
+  .stage { height: 58vh; min-height: 340px; }
+  .views { max-width: 62%; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Minai Printer enclosure</h1>
+    <span class="dims" id="dims"></span>
+  </header>
+  <div class="bench">
+    <div class="stage" id="stage">
+      <canvas id="view" aria-label="3D model of the printer enclosure. Drag to rotate."></canvas>
+      <div class="tag" id="tag">rev 0.1</div>
+      <div class="views">
+        <button type="button" id="v-closed" aria-pressed="true">Closed</button>
+        <button type="button" id="v-open" aria-pressed="false">Lid open</button>
+        <button type="button" id="v-inside" aria-pressed="false">Inside</button>
+        <button type="button" id="v-exploded" aria-pressed="false">Exploded</button>
+      </div>
+      <div class="hint">Drag to rotate · scroll or pinch to zoom · right-drag to pan</div>
+    </div>
+    <div class="side">
+      <section>
+        <h2>Pose</h2>
+        <div class="ctl">
+          <label for="lid">Lid angle <output id="lid-o">0°</output>
+            <input type="range" id="lid" min="0" max="115" value="0" step="1"></label>
+          <label for="explode">Pull apart <output id="explode-o">0%</output>
+            <input type="range" id="explode" min="0" max="100" value="0" step="1"></label>
+          <label class="check" for="xray"><input type="checkbox" id="xray"> See-through shell</label>
+          <label class="check" for="edges"><input type="checkbox" id="edges" checked> Outline edges</label>
+        </div>
+      </section>
+      <section>
+        <h2>Parts</h2>
+        <ul class="parts" id="parts"></ul>
+      </section>
+      <section>
+        <h2>Read this first</h2>
+        <ul class="notes">
+          <li><b>The print mechanism is a stand-in block</b> (70 × 31 × 16 mm, assumed). Its posts, the paper slot and the platen roller position must be redrawn around the real part.</li>
+          <li>Paper path: roll in the front bay, up past the mechanism, out of the slot on top, torn against the serrated bar.</li>
+          <li>The button is translucent and is lit from below by the board's LED.</li>
+          <li>USB-C is on the back, lined up with the socket on the board.</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const MODEL = /*MESHES*/;
+const LABELS = {
+  "base": ["Base", "printed"], "lid": ["Lid, hinged at the front", "printed"],
+  "rear-cover": ["Rear cover with tear bar", "printed"], "button": ["Light-up button", "printed, translucent"],
+  "platen-roller": ["Platen roller", "comes with the mechanism"], "main-board": ["Main board", "62 × 49 mm reference design"],
+  "board-parts": ["Tall parts on the board", "stand-ins"], "print-mechanism": ["Print mechanism", "stand-in block, assumed size"],
+  "paper-roll": ["Paper roll", "58 mm wide, 40 mm diameter"], "paper": ["Paper", "leaving the slot"]
+};
+// How far each part travels when pulled apart (model mm: x, y, z).
+const EXPLODE = {
+  "base": [0, 0, -28], "lid": [0, -14, 46], "platen-roller": [0, -14, 46], "rear-cover": [0, 14, 46],
+  "button": [0, 14, 78], "main-board": [0, 0, 0], "board-parts": [0, 0, 5], "print-mechanism": [0, 0, 26],
+  "paper-roll": [0, -6, 30], "paper": [0, 0, 26]
+};
+
+function decode(b64, Type) {
+  const bin = atob(b64), buf = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+  return new Type(buf.buffer);
+}
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+const canvas = document.getElementById("view"), stage = document.getElementById("stage");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(32, 1, 5, 3000);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f96, 0.85));
+const key = new THREE.DirectionalLight(0xffffff, 0.75); key.position.set(120, 260, 180); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.25); fill.position.set(-200, 80, -120); scene.add(fill);
+
+// Model is Z-up; three.js is Y-up.
+const root = new THREE.Group(); root.rotation.x = -Math.PI / 2; scene.add(root);
+const [W, D, H] = MODEL.outer;
+const model = new THREE.Group(); model.position.set(-W / 2, -D / 2, -H / 2); root.add(model);
+const hinge = new THREE.Group(); hinge.position.set(0, MODEL.hinge[0], MODEL.hinge[1]); model.add(hinge);
+
+const parts = {}, edgeLines = [];
+for (const p of MODEL.parts) {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(decode(p.pos, Float32Array), 3));
+  g.setIndex(new THREE.BufferAttribute(decode(p.idx, Uint32Array), 1));
+  g.computeVertexNormals();
+  const translucent = p.name === "button";
+  const mat = new THREE.MeshStandardMaterial({
+    color: p.color, roughness: p.name === "print-mechanism" ? 0.5 : 0.72, metalness: p.name === "print-mechanism" ? 0.35 : 0.02,
+    transparent: true, opacity: translucent ? 0.9 : 1, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1,
+    emissive: translucent ? new THREE.Color(p.color) : new THREE.Color(0x000000), emissiveIntensity: translucent ? 0.35 : 0
+  });
+  const mesh = new THREE.Mesh(g, mat);
+  const lines = new THREE.LineSegments(new THREE.EdgesGeometry(g, 28), new THREE.LineBasicMaterial({ transparent: true, opacity: 0.55 }));
+  mesh.add(lines); edgeLines.push(lines);
+  const holder = new THREE.Group(); holder.add(mesh);
+  const onLid = p.kind === "lid" || p.kind === "lidpart";
+  if (onLid) { mesh.position.set(0, -MODEL.hinge[0], -MODEL.hinge[1]); hinge.add(holder); } else model.add(holder);
+  parts[p.name] = { p, mesh, mat, holder, onLid, shell: ["shell", "lid", "cover"].includes(p.kind) };
+}
+
+// ---- state
+const state = { lid: 0, explode: 0, xray: false, edges: true, pick: null };
+const cam = { az: -0.72, el: 0.42, dist: 330, tx: 0, ty: 0 };
+let dirty = true;
+
+function applyTheme() {
+  renderer.setClearColor(new THREE.Color(css("--stage")), 1);
+  const edge = new THREE.Color(css("--edge"));
+  edgeLines.forEach(l => l.material.color.copy(edge));
+  dirty = true;
+}
+function apply() {
+  const e = state.explode / 100;
+  hinge.rotation.x = state.lid * Math.PI / 180 * (1 - e);
+  for (const k in parts) {
+    const t = parts[k], o = EXPLODE[k];
+    if (t.onLid) hinge.position.set(o[0] * e, MODEL.hinge[0] + o[1] * e, MODEL.hinge[1] + o[2] * e);
+    else t.holder.position.set(o[0] * e, o[1] * e, o[2] * e);
+    const dim = state.pick && state.pick !== k;
+    let op = k === "button" ? 0.9 : 1;
+    if (state.xray && t.shell) op = 0.16;
+    if (dim) op = Math.min(op, 0.12);
+    t.mat.opacity = op; t.mat.depthWrite = op > 0.5;
+    t.mesh.renderOrder = op > 0.5 ? 0 : 1;
+    t.mesh.children[0].visible = state.edges;
+    t.mesh.children[0].material.opacity = op > 0.5 ? 0.55 : 0.22;
+  }
+  parts["paper"].holder.visible = state.lid < 4 || e > 0;
+  document.getElementById("lid-o").textContent = state.lid + "°";
+  document.getElementById("explode-o").textContent = state.explode + "%";
+  document.getElementById("lid").value = state.lid;
+  document.getElementById("explode").value = state.explode;
+  document.getElementById("xray").checked = state.xray;
+  dirty = true;
+}
+function placeCamera() {
+  const c = Math.cos(cam.el), x = cam.dist * c * Math.sin(cam.az), y = cam.dist * Math.sin(cam.el), z = cam.dist * c * Math.cos(cam.az);
+  const lift = state.explode / 100 * 18 + cam.ty;
+  camera.position.set(x + cam.tx, y + lift, z);
+  camera.lookAt(cam.tx, lift, 0);
+  dirty = true;
+}
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); dirty = true;
+}
+function frame() { if (dirty) { renderer.render(scene, camera); dirty = false; } requestAnimationFrame(frame); }
+
+// ---- animated presets
+let anim = null;
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function go(target, name) {
+  for (const id of ["closed", "open", "inside", "exploded"])
+    document.getElementById("v-" + id).setAttribute("aria-pressed", String(id === name));
+  state.xray = !!target.xray;
+  const from = { lid: state.lid, explode: state.explode, dist: cam.dist }, t0 = performance.now(), dur = reduce ? 1 : 520;
+  cancelAnimationFrame(anim);
+  (function step(now) {
+    const k = Math.min(1, (now - t0) / dur), s = k * k * (3 - 2 * k);
+    state.lid = Math.round(from.lid + (target.lid - from.lid) * s);
+    state.explode = Math.round(from.explode + (target.explode - from.explode) * s);
+    cam.dist = from.dist + (target.dist - from.dist) * s;
+    apply(); placeCamera();
+    if (k < 1) anim = requestAnimationFrame(step);
+  })(t0);
+}
+const PRESETS = {
+  closed: { lid: 0, explode: 0, dist: 330 }, open: { lid: 105, explode: 0, dist: 380 },
+  inside: { lid: 0, explode: 0, dist: 330, xray: true }, exploded: { lid: 0, explode: 100, dist: 520 }
+};
+for (const id in PRESETS) document.getElementById("v-" + id).addEventListener("click", () => go(PRESETS[id], id));
+function manual() { for (const id in PRESETS) document.getElementById("v-" + id).setAttribute("aria-pressed", "false"); }
+document.getElementById("lid").addEventListener("input", e => { state.lid = +e.target.value; manual(); apply(); });
+document.getElementById("explode").addEventListener("input", e => { state.explode = +e.target.value; manual(); apply(); placeCamera(); });
+document.getElementById("xray").addEventListener("change", e => { state.xray = e.target.checked; manual(); apply(); });
+document.getElementById("edges").addEventListener("change", e => { state.edges = e.target.checked; apply(); });
+
+// ---- orbit, pan, zoom
+const ptrs = new Map(); let pinch = 0;
+canvas.addEventListener("contextmenu", e => e.preventDefault());
+canvas.addEventListener("pointerdown", e => { canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, b: e.button }); });
+canvas.addEventListener("pointerup", e => { ptrs.delete(e.pointerId); pinch = 0; });
+canvas.addEventListener("pointercancel", e => { ptrs.delete(e.pointerId); pinch = 0; });
+canvas.addEventListener("pointermove", e => {
+  const p = ptrs.get(e.pointerId); if (!p) return;
+  const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+  if (ptrs.size === 2) {
+    const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+    if (pinch) cam.dist = Math.max(140, Math.min(900, cam.dist * pinch / d));
+    pinch = d;
+  } else if (p.b === 2 || e.shiftKey) {
+    cam.tx -= dx * cam.dist / 900 * Math.cos(cam.az); cam.ty += dy * cam.dist / 900;
+  } else {
+    cam.az -= dx * 0.008; cam.el = Math.max(-1.45, Math.min(1.5, cam.el + dy * 0.008));
+  }
+  placeCamera();
+});
+canvas.addEventListener("wheel", e => { e.preventDefault(); cam.dist = Math.max(140, Math.min(900, cam.dist * Math.exp(e.deltaY * 0.0012))); placeCamera(); }, { passive: false });
+
+// ---- parts list
+const list = document.getElementById("parts"), tag = document.getElementById("tag");
+for (const p of MODEL.parts) {
+  if (p.name === "paper" || p.name === "board-parts") continue;
+  const li = document.createElement("li"); li.tabIndex = 0;
+  const [name, kind] = LABELS[p.name];
+  li.innerHTML = `<span class="sw" style="background:${p.color}"></span><span class="pn">${name}</span>` +
+    `<span class="pd">${p.size.join(" × ")}</span><span class="pk">${kind}${p.printed ? " · " + p.volume + " cm³ of plastic" : ""}</span>`;
+  const pick = () => {
+    state.pick = state.pick === p.name ? null : p.name;
+    [...list.children].forEach(c => c.classList.toggle("on", c === li && !!state.pick));
+    tag.textContent = state.pick ? name + " · " + p.size.join(" × ") + " mm" : "rev 0.1";
+    apply();
+  };
+  li.addEventListener("click", pick);
+  li.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+  list.appendChild(li);
+}
+document.getElementById("dims").innerHTML = `<b>${W} × ${D} × ${H} mm</b> outside · 58 mm paper · 4 printed parts`;
+
+new ResizeObserver(resize).observe(stage);
+new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
+applyTheme(); resize(); apply(); placeCamera(); frame();
+window.__pose = (name) => { const t = PRESETS[name]; state.lid = t.lid; state.explode = t.explode; state.xray = !!t.xray; cam.dist = t.dist; apply(); placeCamera(); renderer.render(scene, camera); };
+</script>

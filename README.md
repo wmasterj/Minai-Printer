@@ -18,7 +18,10 @@ intelligence live in software upstream.
 - [Reference design](hardware/README.md) — schematic, routed board, gerbers
   and parts list with links for the main circuit board.
 
+- [Enclosure](hardware/enclosure/README.md) — 3D model of the case, with
+  STEP and STL files for the four printed parts.
+
 ## Status
 
 Specification and a first-pass reference board design, checked in software
-only. Nothing has been built. No firmware or enclosure yet.
+only, plus a concept enclosure. Nothing has been built. No firmware yet.
