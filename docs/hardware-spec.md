@@ -1,6 +1,8 @@
-# Minai Printer — Hardware Specification (v0.1 draft)
+# Minai Printer — Hardware Specification (v0.2 draft)
 
 Status: draft for review, then for RFQ (request for quotation) to a manufacturer.
+First order: 100 units. A reference schematic and board layout that implement
+this specification are in [`hardware/`](../hardware/README.md).
 All prices are estimates to be replaced by real quotes. Items marked **[confirm]**
 depend on the datasheet of the mechanism the supplier actually sources.
 
@@ -34,7 +36,7 @@ happens in software upstream, which is what keeps the hardware cheap.
 | Resolution | 8 dots/mm (203 dpi) |
 | Speed | ≥ 25 mm/s on typical text at 5 V; ≥ 10 mm/s on solid black |
 | Paper loading | Drop-in ("clamshell"): open lid, drop roll, close lid |
-| Paper cutting | Serrated tear bar moulded into or clipped onto the lid; no motorised cutter |
+| Paper cutting | Serrated tear bar on the lid; no motorised cutter (decided) |
 | Sensors | Paper-out sensor (reflective optical, part of mechanism), head thermistor (part of head), lid-open detection optional |
 | Mechanism life | Per mechanism datasheet, typically 50 km of paper **[confirm]** |
 
@@ -42,11 +44,11 @@ happens in software upstream, which is what keeps the hardware cheap.
 
 | Item | Requirement |
 |---|---|
-| MCU / radio | Espressif ESP32-C3-MINI-1 module, 4 MB flash (pre-certified FCC/CE/IC) |
+| MCU / radio | Espressif ESP32-C3-WROOM-02 module, 4 MB flash (pre-certified radio module) |
 | Wireless | Wi-Fi 802.11 b/g/n 2.4 GHz; Bluetooth LE 5 (used for first-time Wi-Fi setup) |
 | Wired | USB-C: power, firmware flashing, and USB serial printing (native USB of the ESP32-C3) |
 | Firmware update | Over the air, with a rollback partition |
-| Fallback module | ESP32-C6-MINI-1 if more pins are needed (see 5.4) |
+| Alternative modules | ESP32-C3-MINI-1 (smaller, same chip) or ESP32-C6 (more pins) if the supplier prefers |
 
 ### 3.3 User interface
 
@@ -65,15 +67,15 @@ happens in software upstream, which is what keeps the hardware cheap.
 | Head voltage (VH) | 5 V rail through a switch, straight to the head. No boost converter |
 | Logic | 3.3 V from a 600 mA regulator |
 | Idle power | < 0.5 W with Wi-Fi connected |
-| Battery | None in v1 (avoids cell cost, charger circuit, and battery shipping certification) |
+| Battery | None (decided) |
 
 ### 3.5 Mechanical and environmental
 
 | Item | Requirement |
 |---|---|
-| Size target | ≤ 80 × 100 × 55 mm |
-| Enclosure | Injection-moulded ABS, 2 main parts plus lid and button; single colour; snap fits plus 2–4 screws |
-| Prototype enclosure | 3D printed, same geometry |
+| Size target | ≤ 80 × 100 × 55 mm. Reference main board is 62 × 49 mm |
+| Enclosure, first 100 units | 3D printed (MJF or SLS nylon), 2 main parts plus lid and button, 2–4 screws |
+| Enclosure, volume | Same geometry, injection-moulded ABS once the design is proven |
 | Operating range | 5–40 °C, indoor |
 | Compliance targets | FCC Part 15, CE (RED), RoHS, REACH. Use the module's existing radio certification |
 
@@ -87,7 +89,7 @@ happens in software upstream, which is what keeps the hardware cheap.
             ├── VH switch (P-FET) ───┴──────► thermal head (384 dots)
             │        ▲ enable
             ├── bulk capacitors (≥ 2000 µF)
-            └── stepper driver (dual H-bridge) ──► paper feed motor
+            └── stepper driver (dual H-bridge + inverter) ──► paper feed motor
 ```
 
 The print mechanism is a bare 58 mm unit of the PT486F family (Xiamen PRT),
@@ -123,62 +125,51 @@ A strobe line stuck active will burn the head in under a second.
   resistor plus its own 100 µF capacitor) so head pulses cannot reset the MCU.
 - ESD protection diodes on USB data lines; a resettable fuse or current-limit switch on the 5 V input.
 
-### 5.4 Pin budget (ESP32-C3-MINI-1)
+### 5.4 Pin budget
 
-13 GPIOs are available once the 2 USB pins are reserved.
-
-| Function | Pins |
-|---|---|
-| Head: clock, data, latch | 3 |
-| Head: strobe group A, B | 2 |
-| Motor: phase A, phase B (driver in phase/enable mode, e.g. DRV8835 or equivalent) | 2 |
-| VH enable (also enables the motor driver) | 1 |
-| Head thermistor (ADC) | 1 |
-| Paper sensor (ADC) | 1 |
-| Button (GPIO9, doubles as boot) | 1 |
-| RGB LED data | 1 |
-| Spare: VH voltage sense or USB-C CC current sense | 1 |
-| **Total** | **13** |
-
-There is no margin. If the supplier prefers a common 4-input motor driver
-(DRV8833 type), move to ESP32-C6-MINI-1, which costs slightly more and has
-spare pins.
+The ESP32-C3 module has 13 usable GPIOs once the 2 USB pins are reserved, and
+the design uses all of them: head clock, data, latch, 2 strobe groups, 2 motor
+phases, head-power enable, thermistor, paper sensor, head-voltage sense,
+button and LED. The motor is driven from 2 pins by a DRV8833 H-bridge with a
+dual inverter generating the complementary inputs. The full pin map is in
+[`hardware/README.md`](../hardware/README.md).
 
 ### 5.5 PCB
 
-- 2 layers, 1.6 mm FR-4, about 50 × 40 mm, components on one side.
+- 2 layers, 1.6 mm FR-4, 62 × 49 mm in the reference layout, all parts on one side.
 - FPC connector matching the mechanism's flex cable.
-- Test pads for 5 V, 3.3 V, GND, UART TX/RX, and reset.
+- Test pads for 5 V, 3.3 V, GND, head power, reset and head data-out.
 
-## 6. Cost estimate (per unit, 1,000 units, ex-works)
+## 6. Cost estimate (per unit, ex-works)
 
-| Item | Est. USD |
-|---|---|
-| 58 mm print mechanism | 4.20 |
-| ESP32-C3-MINI-1 module | 1.90 |
-| Motor driver, regulator, MOSFET, USB-C socket, capacitors, LED, switch, connectors, passives | 1.50 |
-| PCB and SMT assembly | 1.15 |
-| Enclosure (4 moulded parts, screws) | 1.20 |
-| USB-C cable and starter paper roll | 0.70 |
-| Packaging | 0.50 |
-| Final assembly and test | 1.00 |
-| **Total** | **≈ 12** |
+| Item | 100 units | 1,000 units |
+|---|---|---|
+| 58 mm print mechanism | 5.50 | 4.20 |
+| ESP32-C3 module | 2.50 | 1.90 |
+| Other electronic parts | 2.50 | 1.50 |
+| PCB and assembly (including set-up share) | 4.00 | 1.15 |
+| Enclosure (3D printed at 100; moulded at 1,000) | 7.00 | 1.20 |
+| USB-C cable and starter paper roll | 1.00 | 0.70 |
+| Packaging | 1.00 | 0.50 |
+| Final assembly and test | 3.00 | 1.00 |
+| **Total, USD** | **≈ 26** | **≈ 12** |
 
-One-time costs, not included above: injection mould tooling (roughly
-$4,000–8,000), compliance testing (roughly $3,000–8,000 when using a
-pre-certified module), and engineering fees charged by the supplier.
+All figures are estimates to be replaced by quotes. The only one checked
+against a current listing is the mechanism ($3.90–4.50 in volume).
 
-The mechanism price is the only figure checked against a current listing
-($3.90–4.50); the rest are estimates.
+One-time costs on top: supplier engineering fees, and compliance testing
+(roughly $3,000–8,000 with a pre-certified module) if the 100 units are sold
+rather than used as a private pilot. Injection-mould tooling (roughly
+$4,000–8,000) is deferred until after the first 100.
 
 ## 7. Build plan
 
 | Stage | Units | What is built | Purpose |
 |---|---|---|---|
 | P0 bench | 1–2 | Dev board + off-the-shelf 58 mm serial printer module | Start firmware and cloud software immediately |
-| P1 prototype | 5–10 | Custom PCB from a prototype assembler, bare mechanism, 3D-printed case | Prove direct head drive, power on 5 V, print quality |
-| P2 pilot | 50–100 | Revised PCB, soft-tooled or 3D-printed case | Field test, compliance pre-scan |
-| P3 production | 1,000+ | Moulded enclosure, factory test fixture | Shipping product |
+| P1 prototype | 5–10 | Reference PCB after engineer review, bare mechanism, 3D-printed case | Prove direct head drive, power on 5 V, print quality |
+| P2 first order | 100 | Revised PCB, 3D-printed case, factory test | Real users, compliance pre-scan |
+| P3 volume | 1,000+ | Moulded enclosure, test fixture | Only if P2 justifies it |
 
 Two ways to get it made:
 
@@ -186,7 +177,7 @@ Two ways to get it made:
 2. **Adapt an existing product**: ask a factory that already makes 58 mm
    printers to fit our PCB (or our firmware on their ESP32 board) into their
    existing enclosure. This skips tooling cost and is usually the cheapest and
-   fastest route to the first 1,000 units. Recommended to quote both.
+   fastest route to the first batch. Recommended to quote both.
 
 ## 8. Factory acceptance test (every unit)
 
@@ -207,15 +198,15 @@ Two ways to get it made:
 - Lead time for 10 prototypes and for the first production batch.
 - Their proposal for anything in this document they would change to cut cost.
 
-## 10. Open decisions
+## 10. Decisions
 
-| Decision | Default in this spec | Alternative |
-|---|---|---|
-| Battery | None | 1S Li-ion cell: portable, but adds roughly $2–3 and shipping certification |
-| Cutter | Tear bar | Mechanism with auto-cutter: adds roughly $4–6 and needs a higher voltage supply |
-| Paper width | 58 mm | 80 mm: nicer for long text, roughly doubles mechanism cost and current |
-| Extra inputs | One button | Microphone, NFC, or more buttons in a later version |
-| First order size | 1,000 | Smaller runs raise the unit price sharply |
+| Decision | Outcome |
+|---|---|
+| Battery | None |
+| Cutter | Tear bar |
+| First order size | 100 units |
+| Paper width | 58 mm |
+| Extra inputs (microphone, NFC, more buttons) | Not in this version |
 
 ## Sources
 

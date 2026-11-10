@@ -1,0 +1,12 @@
+ERC report (2026-11-10T05:15:33+0000, Encoding UTF8)
+Report includes: Errors, Warnings, Exclusions
+
+***** Sheet /
+[lib_symbol_mismatch]: Symbol '2N7002' doesn't match copy in library 'Transistor_FET'
+    ; warning
+    @(340.36 mm, 101.60 mm): Symbol Q2 [2N7002]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'minai'
+    ; warning
+    @(375.92 mm, 203.20 mm): Symbol J2 [PrintMech_FTP-628MCL101]
+
+ ** ERC messages: 2  Errors 0  Warnings 2
